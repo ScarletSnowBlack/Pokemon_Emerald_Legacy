@@ -5476,7 +5476,11 @@ static void PrintStatsScreen_Moves_BottomText(u8 taskId)
     u8 moves_y = 3;
     if (gTasks[taskId].data[5] == 0)
     {
-        PrintStatsScreenTextSmall(WIN_STATS_MOVES_BOTTOM, gText_Power,  moves_x, moves_y);
+        PrintStatsScreenTextSmall(
+            WIN_STATS_MOVES_BOTTOM,
+            gMoveCategoryPowerLabels[gMoveDamageCategories[sStatsMoves[sPokedexView->moveSelected]]],
+            moves_x,
+            moves_y);
         PrintStatsScreenTextSmall(WIN_STATS_MOVES_BOTTOM, gText_Accuracy2,  moves_x + 66, moves_y);
     }
     else

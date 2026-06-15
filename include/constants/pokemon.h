@@ -247,6 +247,11 @@
 #define FLAG_MIRROR_MOVE_AFFECTED   (1 << 4)
 #define FLAG_KINGS_ROCK_AFFECTED    (1 << 5)
 
+// Battle move damage categories
+#define DAMAGE_CATEGORY_PHYSICAL    0
+#define DAMAGE_CATEGORY_SPECIAL     1
+#define DAMAGE_CATEGORY_STATUS      2
+
 // Growth rates
 #define GROWTH_MEDIUM_FAST  0
 #define GROWTH_ERRATIC      1

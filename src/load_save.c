@@ -174,7 +174,11 @@ void LoadPlayerParty(void)
     gPlayerPartyCount = gSaveBlock1Ptr->playerPartyCount;
 
     for (i = 0; i < PARTY_SIZE; i++)
+    {
         gPlayerParty[i] = gSaveBlock1Ptr->playerParty[i];
+        if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES) != SPECIES_NONE)
+            CalculateMonStats(&gPlayerParty[i]);
+    }
 }
 
 void SaveObjectEvents(void)

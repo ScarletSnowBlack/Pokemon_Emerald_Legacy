@@ -3681,7 +3681,15 @@ static void PrintMovePowerAndAccuracy(u16 moveIndex)
     const u8 *text;
     if (moveIndex != 0)
     {
-        FillWindowPixelRect(PSS_LABEL_WINDOW_MOVES_POWER_ACC, PIXEL_FILL(0), 53, 0, 19, 32);
+        FillWindowPixelRect(PSS_LABEL_WINDOW_MOVES_POWER_ACC, PIXEL_FILL(0), 0, 0, 72, 16);
+        FillWindowPixelRect(PSS_LABEL_WINDOW_MOVES_POWER_ACC, PIXEL_FILL(0), 53, 16, 19, 16);
+        PrintTextOnWindow(
+            PSS_LABEL_WINDOW_MOVES_POWER_ACC,
+            gMoveCategoryPowerLabels[gMoveDamageCategories[moveIndex]],
+            0,
+            1,
+            0,
+            1);
 
         if (gBattleMoves[moveIndex].power < 2)
         {

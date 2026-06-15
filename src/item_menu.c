@@ -2634,7 +2634,9 @@ static void PrintTMHMMoveData(u16 itemId)
             ConvertIntToDecimalStringN(gStringVar1, gBattleMoves[moveId].power, STR_CONV_MODE_RIGHT_ALIGN, 3);
             text = gStringVar1;
         }
-        BagMenu_Print(WIN_TMHM_INFO, FONT_NORMAL, text, 7, 12, 0, 0, TEXT_SKIP_DRAW, COLORID_TMHM_INFO);
+        StringCopy(gStringVar2, gMoveCategoryShortNames[gMoveDamageCategories[moveId]]);
+        StringAppend(gStringVar2, text);
+        BagMenu_Print(WIN_TMHM_INFO, FONT_NORMAL, gStringVar2, 0, 12, 0, 0, TEXT_SKIP_DRAW, COLORID_TMHM_INFO);
 
         // Print TMHM accuracy
         if (gBattleMoves[moveId].accuracy == 0)

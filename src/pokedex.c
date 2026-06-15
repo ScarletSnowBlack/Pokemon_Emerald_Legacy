@@ -6384,7 +6384,7 @@ static void PrintMoveNameAndInfo(u8 taskId, bool8 toggle)
     if (gTasks[taskId].data[5] == 0)
     {
         //Power
-        PrintInfoScreenTextSmall(gText_Power,  moves_x + 3, moves_y + 64);
+        PrintInfoScreenTextSmall(gMoveCategoryPowerLabels[gMoveDamageCategories[move]], moves_x + 3, moves_y + 64);
         if (gBattleMoves[move].power < 2)
             StringCopy(gStringVar1, gText_ThreeDashes);
         else
@@ -6858,4 +6858,3 @@ static void Task_ExitStatsScreen(u8 taskId)
 //         DestroySprite(&gSprites[sPokedexListItem->splitIconSpriteId]);
 //     sPokedexListItem->splitIconSpriteId = 0xFF;
 // }
-

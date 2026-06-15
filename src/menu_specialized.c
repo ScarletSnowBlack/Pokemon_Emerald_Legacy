@@ -764,7 +764,10 @@ static void MoveRelearnerLoadBattleMoveDescription(u32 chosenMove)
     str = gText_MoveRelearnerPP;
     AddTextPrinterParameterized(RELEARNERWIN_DESC_BATTLE, FONT_NORMAL, str, 4, 41, TEXT_SKIP_DRAW, NULL);
 
-    str = gText_MoveRelearnerPower;
+    if (chosenMove == LIST_CANCEL)
+        str = gText_MoveRelearnerPower;
+    else
+        str = gMoveCategoryPowerLabels[gMoveDamageCategories[chosenMove]];
     x = GetStringRightAlignXOffset(FONT_NORMAL, str, 106);
     AddTextPrinterParameterized(RELEARNERWIN_DESC_BATTLE, FONT_NORMAL, str, x, 25, TEXT_SKIP_DRAW, NULL);
 

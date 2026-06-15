@@ -3166,6 +3166,7 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
     s32 damage = 0;
     s32 damageHelper;
     u8 type;
+    u8 category;
     u16 attack, defense;
     u16 spAttack, spDefense;
     u8 defenderHoldEffect;
@@ -3183,6 +3184,7 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
     else
         type = typeOverride & DYNAMIC_TYPE_MASK;
 
+    category = gMoveDamageCategories[move];
     attack = attacker->attack;
     defense = defender->defense;
     spAttack = attacker->spAttack;
@@ -3230,9 +3232,9 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
         if (attackerHoldEffect == sHoldEffectToType[i][0]
             && type == sHoldEffectToType[i][1])
         {
-            if (IS_TYPE_PHYSICAL(type))
+            if (category == DAMAGE_CATEGORY_PHYSICAL)
                 attack = (attack * (attackerHoldEffectParam + 100)) / 100;
-            else
+            else if (category == DAMAGE_CATEGORY_SPECIAL)
                 spAttack = (spAttack * (attackerHoldEffectParam + 100)) / 100;
             break;
         }
@@ -3250,7 +3252,10 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
     if (defenderHoldEffect == HOLD_EFFECT_DEEP_SEA_SCALE && defender->species == SPECIES_CLAMPERL)
         spDefense *= 2;
     if (attackerHoldEffect == HOLD_EFFECT_LIGHT_BALL && attacker->species == SPECIES_PIKACHU)
+    {
+        attack *= 2;
         spAttack *= 2;
+    }
     if (defenderHoldEffect == HOLD_EFFECT_METAL_POWDER && defender->species == SPECIES_DITTO)
         defense *= 2;
     if (attackerHoldEffect == HOLD_EFFECT_THICK_CLUB && (attacker->species == SPECIES_CUBONE || attacker->species == SPECIES_MAROWAK))
@@ -3274,9 +3279,19 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
 
     // Apply abilities / field sports
     if (defender->ability == ABILITY_THICK_FAT && (type == TYPE_FIRE || type == TYPE_ICE))
-        spAttack /= 2;
+    {
+        if (category == DAMAGE_CATEGORY_PHYSICAL)
+            attack /= 2;
+        else if (category == DAMAGE_CATEGORY_SPECIAL)
+            spAttack /= 2;
+    }
     if (defender->ability == ABILITY_MAGMA_ARMOR && type == TYPE_WATER)
-        spAttack /= 8;
+    {
+        if (category == DAMAGE_CATEGORY_PHYSICAL)
+            attack /= 8;
+        else if (category == DAMAGE_CATEGORY_SPECIAL)
+            spAttack /= 8;
+    }
     if (attacker->ability == ABILITY_HUSTLE)
         attack = (150 * attack) / 100;
     if (attacker->ability == ABILITY_PLUS && ABILITY_ON_FIELD2(ABILITY_MINUS))
@@ -3304,7 +3319,7 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
     if (gBattleMoves[gCurrentMove].effect == EFFECT_EXPLOSION)
         defense /= 2;
 
-    if (IS_TYPE_PHYSICAL(type))
+    if (category == DAMAGE_CATEGORY_PHYSICAL)
     {
         if (gCritMultiplier == 2)
         {
@@ -3359,7 +3374,7 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
     if (type == TYPE_MYSTERY)
         damage = 0; // is ??? type. does 0 damage.
 
-    if (IS_TYPE_SPECIAL(type))
+    else if (category == DAMAGE_CATEGORY_SPECIAL)
     {
         if (gCritMultiplier == 2)
         {
@@ -3402,46 +3417,48 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
         if ((gBattleTypeFlags & BATTLE_TYPE_DOUBLE) && gBattleMoves[move].target == MOVE_TARGET_BOTH && CountAliveMonsInBattle(BATTLE_ALIVE_DEF_SIDE) == 2)
             damage /= 2;
 
-        // Are effects of weather negated with cloud nine or air lock
-        if (WEATHER_HAS_EFFECT2)
+    }
+
+    // Weather and Flash Fire modify damage regardless of its category.
+    if (category != DAMAGE_CATEGORY_STATUS && WEATHER_HAS_EFFECT2)
+    {
+        // Rain weakens Fire, boosts Water
+        if (gBattleWeather & B_WEATHER_RAIN_TEMPORARY)
         {
-            // Rain weakens Fire, boosts Water
-            if (gBattleWeather & B_WEATHER_RAIN_TEMPORARY)
+            switch (type)
             {
-                switch (type)
-                {
-                case TYPE_FIRE:
-                    damage /= 2;
-                    break;
-                case TYPE_WATER:
-                    damage = (15 * damage) / 10;
-                    break;
-                }
-            }
-
-            // Any weather except sun weakens solar beam
-            if ((gBattleWeather & (B_WEATHER_RAIN | B_WEATHER_SANDSTORM | B_WEATHER_HAIL)) && gCurrentMove == MOVE_SOLAR_BEAM)
+            case TYPE_FIRE:
                 damage /= 2;
-
-            // Sun boosts Fire, weakens Water
-            if (gBattleWeather & B_WEATHER_SUN)
-            {
-                switch (type)
-                {
-                case TYPE_FIRE:
-                    damage = (15 * damage) / 10;
-                    break;
-                case TYPE_WATER:
-                    damage /= 2;
-                    break;
-                }
+                break;
+            case TYPE_WATER:
+                damage = (15 * damage) / 10;
+                break;
             }
         }
 
-        // Flash fire triggered
-        if ((gBattleResources->flags->flags[battlerIdAtk] & RESOURCE_FLAG_FLASH_FIRE) && type == TYPE_FIRE)
-            damage = (15 * damage) / 10;
+        // Any weather except sun weakens solar beam
+        if ((gBattleWeather & (B_WEATHER_RAIN | B_WEATHER_SANDSTORM | B_WEATHER_HAIL)) && move == MOVE_SOLAR_BEAM)
+            damage /= 2;
+
+        // Sun boosts Fire, weakens Water
+        if (gBattleWeather & B_WEATHER_SUN)
+        {
+            switch (type)
+            {
+            case TYPE_FIRE:
+                damage = (15 * damage) / 10;
+                break;
+            case TYPE_WATER:
+                damage /= 2;
+                break;
+            }
+        }
     }
+
+    if (category != DAMAGE_CATEGORY_STATUS
+     && (gBattleResources->flags->flags[battlerIdAtk] & RESOURCE_FLAG_FLASH_FIRE)
+     && type == TYPE_FIRE)
+        damage = (15 * damage) / 10;
 
     return damage + 2;
 }
@@ -3980,22 +3997,12 @@ u32 GetBoxMonData3(struct BoxPokemon *boxMon, s32 field, u8 *data)
         retVal = substruct3->otGender;
         break;
     case MON_DATA_HP_IV:
-        retVal = substruct3->hpIV;
-        break;
     case MON_DATA_ATK_IV:
-        retVal = substruct3->attackIV;
-        break;
     case MON_DATA_DEF_IV:
-        retVal = substruct3->defenseIV;
-        break;
     case MON_DATA_SPEED_IV:
-        retVal = substruct3->speedIV;
-        break;
     case MON_DATA_SPATK_IV:
-        retVal = substruct3->spAttackIV;
-        break;
     case MON_DATA_SPDEF_IV:
-        retVal = substruct3->spDefenseIV;
+        retVal = MAX_IV_MASK;
         break;
     case MON_DATA_IS_EGG:
         retVal = substruct3->isEgg;
@@ -4066,12 +4073,12 @@ u32 GetBoxMonData3(struct BoxPokemon *boxMon, s32 field, u8 *data)
             retVal = SPECIES_EGG;
         break;
     case MON_DATA_IVS:
-        retVal = substruct3->hpIV
-              | (substruct3->attackIV << 5)
-              | (substruct3->defenseIV << 10)
-              | (substruct3->speedIV << 15)
-              | (substruct3->spAttackIV << 20)
-              | (substruct3->spDefenseIV << 25);
+        retVal = MAX_IV_MASK
+              | (MAX_IV_MASK << 5)
+              | (MAX_IV_MASK << 10)
+              | (MAX_IV_MASK << 15)
+              | (MAX_IV_MASK << 20)
+              | (MAX_IV_MASK << 25);
         break;
     case MON_DATA_KNOWN_MOVES:
         if (substruct0->species && !substruct3->isEgg)
@@ -4365,22 +4372,22 @@ void SetBoxMonData(struct BoxPokemon *boxMon, s32 field, const void *dataArg)
         SET8(substruct3->otGender);
         break;
     case MON_DATA_HP_IV:
-        SET8(substruct3->hpIV);
+        substruct3->hpIV = MAX_IV_MASK;
         break;
     case MON_DATA_ATK_IV:
-        SET8(substruct3->attackIV);
+        substruct3->attackIV = MAX_IV_MASK;
         break;
     case MON_DATA_DEF_IV:
-        SET8(substruct3->defenseIV);
+        substruct3->defenseIV = MAX_IV_MASK;
         break;
     case MON_DATA_SPEED_IV:
-        SET8(substruct3->speedIV);
+        substruct3->speedIV = MAX_IV_MASK;
         break;
     case MON_DATA_SPATK_IV:
-        SET8(substruct3->spAttackIV);
+        substruct3->spAttackIV = MAX_IV_MASK;
         break;
     case MON_DATA_SPDEF_IV:
-        SET8(substruct3->spDefenseIV);
+        substruct3->spDefenseIV = MAX_IV_MASK;
         break;
     case MON_DATA_IS_EGG:
         SET8(substruct3->isEgg);
@@ -4450,16 +4457,13 @@ void SetBoxMonData(struct BoxPokemon *boxMon, s32 field, const void *dataArg)
         SET8(substruct3->modernFatefulEncounter);
         break;
     case MON_DATA_IVS:
-    {
-        u32 ivs = data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24);
-        substruct3->hpIV = ivs & MAX_IV_MASK;
-        substruct3->attackIV = (ivs >> 5) & MAX_IV_MASK;
-        substruct3->defenseIV = (ivs >> 10) & MAX_IV_MASK;
-        substruct3->speedIV = (ivs >> 15) & MAX_IV_MASK;
-        substruct3->spAttackIV = (ivs >> 20) & MAX_IV_MASK;
-        substruct3->spDefenseIV = (ivs >> 25) & MAX_IV_MASK;
+        substruct3->hpIV = MAX_IV_MASK;
+        substruct3->attackIV = MAX_IV_MASK;
+        substruct3->defenseIV = MAX_IV_MASK;
+        substruct3->speedIV = MAX_IV_MASK;
+        substruct3->spAttackIV = MAX_IV_MASK;
+        substruct3->spDefenseIV = MAX_IV_MASK;
         break;
-    }
     default:
         break;
     }
@@ -6015,14 +6019,11 @@ void AdjustFriendship(struct Pokemon *mon, u8 event)
     }
 }
 
-void MonGainEVs(struct Pokemon *mon, u16 defeatedSpecies)
+void MonGainEVs(struct Pokemon *mon)
 {
     u8 evs[NUM_STATS];
-    u16 evIncrease = 0;
     u16 totalEVs = 0;
-    u16 heldItem;
-    u8 holdEffect;
-    int i, multiplier;
+    int i;
 
     for (i = 0; i < NUM_STATS; i++)
     {
@@ -6030,66 +6031,28 @@ void MonGainEVs(struct Pokemon *mon, u16 defeatedSpecies)
         totalEVs += evs[i];
     }
 
+    if (totalEVs + NUM_STATS > MAX_TOTAL_EVS)
+    {
+        mon->box.evGainHalf = FALSE;
+        return;
+    }
+
     for (i = 0; i < NUM_STATS; i++)
     {
-        if (totalEVs >= MAX_TOTAL_EVS)
-            break;
-
-        if (CheckPartyHasHadPokerus(mon, 0))
-            multiplier = 2;
-        else
-            multiplier = 1;
-
-        switch (i)
+        if (evs[i] >= MAX_PER_STAT_EVS)
         {
-        case STAT_HP:
-            evIncrease = gSpeciesInfo[defeatedSpecies].evYield_HP * multiplier;
-            break;
-        case STAT_ATK:
-            evIncrease = gSpeciesInfo[defeatedSpecies].evYield_Attack * multiplier;
-            break;
-        case STAT_DEF:
-            evIncrease = gSpeciesInfo[defeatedSpecies].evYield_Defense * multiplier;
-            break;
-        case STAT_SPEED:
-            evIncrease = gSpeciesInfo[defeatedSpecies].evYield_Speed * multiplier;
-            break;
-        case STAT_SPATK:
-            evIncrease = gSpeciesInfo[defeatedSpecies].evYield_SpAttack * multiplier;
-            break;
-        case STAT_SPDEF:
-            evIncrease = gSpeciesInfo[defeatedSpecies].evYield_SpDefense * multiplier;
-            break;
+            mon->box.evGainHalf = FALSE;
+            return;
         }
+    }
 
-        heldItem = GetMonData(mon, MON_DATA_HELD_ITEM, 0);
-        if (heldItem == ITEM_ENIGMA_BERRY)
-        {
-            if (gMain.inBattle)
-                holdEffect = gEnigmaBerries[0].holdEffect;
-            else
-                holdEffect = gSaveBlock1Ptr->enigmaBerry.holdEffect;
-        }
-        else
-        {
-            holdEffect = ItemId_GetHoldEffect(heldItem);
-        }
+    mon->box.evGainHalf ^= TRUE;
+    if (mon->box.evGainHalf)
+        return;
 
-        if (holdEffect == HOLD_EFFECT_MACHO_BRACE)
-            evIncrease *= 2;
-
-        if (totalEVs + (s16)evIncrease > MAX_TOTAL_EVS)
-            evIncrease = ((s16)evIncrease + MAX_TOTAL_EVS) - (totalEVs + evIncrease);
-
-        if (evs[i] + (s16)evIncrease > MAX_PER_STAT_EVS)
-        {
-            int val1 = (s16)evIncrease + MAX_PER_STAT_EVS;
-            int val2 = evs[i] + evIncrease;
-            evIncrease = val1 - val2;
-        }
-
-        evs[i] += evIncrease;
-        totalEVs += evIncrease;
+    for (i = 0; i < NUM_STATS; i++)
+    {
+        evs[i]++;
         SetMonData(mon, MON_DATA_HP_EV + i, &evs[i]);
     }
 }

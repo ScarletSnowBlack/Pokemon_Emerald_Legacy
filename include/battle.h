@@ -451,7 +451,6 @@ struct BattleStruct
 STATIC_ASSERT(sizeof(((struct BattleStruct *)0)->palaceFlags) * 8 >= MAX_BATTLERS_COUNT + MAX_MON_MOVES, PalaceFlagsTooSmall)
 
 #define DYNAMIC_TYPE_MASK                 ((1 << 6) - 1)
-#define F_DYNAMIC_TYPE_IGNORE_PHYSICALITY  (1 << 6) // If set, the dynamic type's physicality won't be used for certain move effects.
 #define F_DYNAMIC_TYPE_SET                 (1 << 7) // Set for all dynamic types to distinguish a dynamic type of Normal (0) from no dynamic type.
 
 #define GET_MOVE_TYPE(move, typeArg)                                  \
@@ -462,8 +461,9 @@ STATIC_ASSERT(sizeof(((struct BattleStruct *)0)->palaceFlags) * 8 >= MAX_BATTLER
         typeArg = gBattleMoves[move].type;                            \
 }
 
-#define IS_TYPE_PHYSICAL(moveType)((moveType < TYPE_MYSTERY && moveType != TYPE_GHOST) || moveType == TYPE_DARK) // Doing dark/ghost switch this way to preserve IDs for pkhex/trade functionality
-#define IS_TYPE_SPECIAL(moveType)((moveType > TYPE_MYSTERY && moveType != TYPE_DARK) || moveType == TYPE_GHOST)
+#define IS_MOVE_PHYSICAL(move) (gMoveDamageCategories[move] == DAMAGE_CATEGORY_PHYSICAL)
+#define IS_MOVE_SPECIAL(move)  (gMoveDamageCategories[move] == DAMAGE_CATEGORY_SPECIAL)
+#define IS_MOVE_STATUS(move)   (gMoveDamageCategories[move] == DAMAGE_CATEGORY_STATUS)
 
 #define TARGET_TURN_DAMAGED ((gSpecialStatuses[gBattlerTarget].physicalDmg != 0 || gSpecialStatuses[gBattlerTarget].specialDmg != 0))
 

@@ -205,7 +205,8 @@ struct BoxPokemon
     u8 isEgg:1;
     u8 blockBoxRS:1; // Unused, but Pokémon Box Ruby & Sapphire will refuse to deposit a Pokémon with this flag set
     u8 dead:1;
-    u8 unused:3;
+    u8 evGainHalf:1;
+    u8 unused:2;
     u8 otName[PLAYER_NAME_LENGTH];
     u8 markings;
     u16 checksum;
@@ -380,6 +381,10 @@ extern struct Pokemon gEnemyParty[PARTY_SIZE];
 extern struct SpriteTemplate gMultiuseSpriteTemplate;
 
 extern const struct BattleMove gBattleMoves[];
+extern const u8 gMoveDamageCategories[];
+extern const u8 *const gMoveCategoryNames[];
+extern const u8 *const gMoveCategoryPowerLabels[];
+extern const u8 *const gMoveCategoryShortNames[];
 extern const u8 gFacilityClassToPicIndex[];
 extern const u8 gFacilityClassToTrainerClass[];
 extern const struct SpeciesInfo gSpeciesInfo[];
@@ -494,7 +499,7 @@ s32 GetBattlerMultiplayerId(u16 id);
 u8 GetTrainerEncounterMusicId(u16 trainerOpponentId);
 u16 ModifyStatByNature(u8 nature, u16 n, u8 statIndex);
 void AdjustFriendship(struct Pokemon *mon, u8 event);
-void MonGainEVs(struct Pokemon *mon, u16 defeatedSpecies);
+void MonGainEVs(struct Pokemon *mon);
 u16 GetMonEVCount(struct Pokemon *mon);
 void RandomlyGivePartyPokerus(struct Pokemon *party);
 u8 CheckPartyPokerus(struct Pokemon *party, u8 selection);
