@@ -27,6 +27,7 @@ NATURE_FALLBACK = (
 )
 POOL_OVERRIDES = {
     "Charmander": ("Adamant", "Timid", "Jolly", "Modest"),
+    "Eevee": ("Bold", "Calm", "Timid", "Careful", "Modest", "Adamant", "Jolly"),
 }
 
 
@@ -225,6 +226,8 @@ def main() -> None:
         "#define NATURE_BIT(nature) (1u << (nature))",
         "#define NATURE_POOL(a, b, c, d) \\",
         "    (NATURE_BIT(a) | NATURE_BIT(b) | NATURE_BIT(c) | NATURE_BIT(d))",
+        "#define NATURE_POOL_7(a, b, c, d, e, f, g) \\",
+        "    (NATURE_POOL(a, b, c, d) | NATURE_BIT(e) | NATURE_BIT(f) | NATURE_BIT(g))",
         "",
         "// Based on Smogon RS analyses. Missing slots use family roles and base stats.",
         "static const u32 sSpeciesNatureMasks[NUM_SPECIES] =",
@@ -245,14 +248,16 @@ def main() -> None:
             f"NATURE_{nature.upper()}"
             for nature in pool
         )
+        pool_macro = f"NATURE_POOL_{len(pool)}" if len(pool) != 4 else "NATURE_POOL"
         lines.append(
-            f"    [{macro:<24}] = NATURE_POOL({nature_constants}),"
+            f"    [{macro:<24}] = {pool_macro}({nature_constants}),"
         )
 
     lines.extend(
         [
             "};",
             "",
+            "#undef NATURE_POOL_7",
             "#undef NATURE_POOL",
             "#undef NATURE_BIT",
             "",
