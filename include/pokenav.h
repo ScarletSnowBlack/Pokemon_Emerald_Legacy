@@ -1,6 +1,8 @@
 #ifndef GUARD_POKENAV_H
 #define GUARD_POKENAV_H
 
+struct RegionMap;
+
 #include "bg.h"
 #include "main.h"
 #include "pokemon_storage_system.h"
@@ -322,6 +324,9 @@ u32 GetPokenavMode(void);
 bool32 CanViewRibbonsMenu(void);
 void SetPokenavVBlankCallback(void);
 void SetVBlankCallback_(IntrCallback callback);
+void RequestPokenavFlyMap(const struct RegionMap *regionMap);
+void ApplyPokenavFlyMapSelection(struct RegionMap *regionMap);
+bool8 ConsumePokenavFlyMapRequest(void);
 
 // pokenav_list.c
 bool32 CreatePokenavList(const struct BgTemplate *bgTemplate, struct PokenavListTemplate *listTemplate, s32 tileOffset);

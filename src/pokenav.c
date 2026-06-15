@@ -7,6 +7,7 @@
 #include "palette.h"
 #include "pokemon_storage_system.h"
 #include "pokenav.h"
+#include "region_map.h"
 
 #define LOOPED_TASK_DECODE_STATE(action) (action - 5)
 
@@ -205,6 +206,13 @@ const struct PokenavCallbacks PokenavMenuCallbacks[15] =
 
 EWRAM_DATA u8 gNextLoopedTaskId = 0;
 EWRAM_DATA struct PokenavResources *gPokenavResources = NULL;
+static EWRAM_DATA bool8 sOpenFlyMapAfterPokenav = FALSE;
+static EWRAM_DATA bool8 sFlyMapOpenedFromPokenav = FALSE;
+static EWRAM_DATA u16 sPokenavFlyMapSecId = 0;
+static EWRAM_DATA u8 sPokenavFlyMapSecType = MAPSECTYPE_NONE;
+static EWRAM_DATA u8 sPokenavFlyMapPosWithinMapSec = 0;
+static EWRAM_DATA u16 sPokenavFlyMapCursorX = 0;
+static EWRAM_DATA u16 sPokenavFlyMapCursorY = 0;
 
 // code
 u32 CreateLoopedTask(LoopedTask loopedTask, u32 priority)
@@ -489,10 +497,17 @@ static void Task_Pokenav(u8 taskId)
         if (!WaitForPokenavShutdownFade())
         {
             bool32 calledFromScript = (gPokenavResources->mode != POKENAV_MODE_NORMAL);
+            bool8 openFlyMap = sOpenFlyMapAfterPokenav;
 
             FreeMenuHandlerSubstruct1();
             FreePokenavResources();
-            if (calledFromScript)
+            sOpenFlyMapAfterPokenav = FALSE;
+            if (openFlyMap)
+            {
+                gMain.state = 0;
+                SetMainCallback2(CB2_OpenFlyMap);
+            }
+            else if (calledFromScript)
                 SetMainCallback2(CB2_ReturnToFieldContinueScriptPlayMapMusic);
             else
                 SetMainCallback2(CB2_ReturnToFieldWithOpenMenu);
@@ -502,6 +517,51 @@ static void Task_Pokenav(u8 taskId)
 }
 
 #undef tState
+
+void RequestPokenavFlyMap(const struct RegionMap *regionMap)
+{
+    sOpenFlyMapAfterPokenav = TRUE;
+    sFlyMapOpenedFromPokenav = TRUE;
+    sPokenavFlyMapSecId = regionMap->mapSecId;
+    sPokenavFlyMapSecType = regionMap->mapSecType;
+    sPokenavFlyMapPosWithinMapSec = regionMap->posWithinMapSec;
+    if (regionMap->zoomed)
+    {
+        sPokenavFlyMapCursorX = regionMap->zoomedCursorPosX;
+        sPokenavFlyMapCursorY = regionMap->zoomedCursorPosY;
+    }
+    else
+    {
+        sPokenavFlyMapCursorX = regionMap->cursorPosX;
+        sPokenavFlyMapCursorY = regionMap->cursorPosY;
+    }
+}
+
+void ApplyPokenavFlyMapSelection(struct RegionMap *regionMap)
+{
+    if (!sFlyMapOpenedFromPokenav)
+        return;
+
+    regionMap->mapSecId = sPokenavFlyMapSecId;
+    regionMap->mapSecType = sPokenavFlyMapSecType;
+    regionMap->posWithinMapSec = sPokenavFlyMapPosWithinMapSec;
+    regionMap->cursorPosX = sPokenavFlyMapCursorX;
+    regionMap->cursorPosY = sPokenavFlyMapCursorY;
+    regionMap->zoomedCursorPosX = sPokenavFlyMapCursorX;
+    regionMap->zoomedCursorPosY = sPokenavFlyMapCursorY;
+    GetMapName(regionMap->mapSecName, regionMap->mapSecId, MAP_NAME_LENGTH);
+}
+
+bool8 ConsumePokenavFlyMapRequest(void)
+{
+    if (sFlyMapOpenedFromPokenav)
+    {
+        sFlyMapOpenedFromPokenav = FALSE;
+        return TRUE;
+    }
+
+    return FALSE;
+}
 
 static bool32 SetActivePokenavMenu(u32 menuId)
 {

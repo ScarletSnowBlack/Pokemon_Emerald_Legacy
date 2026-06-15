@@ -1,4 +1,5 @@
 #include "global.h"
+#include "hm.h"
 #include "frontier_util.h"
 #include "battle_setup.h"
 #include "berry.h"
@@ -1722,6 +1723,12 @@ bool8 ScrCmd_checkpartymove(struct ScriptContext *ctx)
 {
     u8 i;
     u16 moveId = ScriptReadHalfword(ctx);
+
+    if (IsFieldMoveHM(moveId))
+    {
+        gSpecialVar_Result = GetPartyMonForHM(moveId);
+        return FALSE;
+    }
 
     gSpecialVar_Result = PARTY_SIZE;
     for (i = 0; i < PARTY_SIZE; i++)

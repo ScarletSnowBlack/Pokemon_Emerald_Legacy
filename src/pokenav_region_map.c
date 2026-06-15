@@ -1,10 +1,13 @@
 #include "global.h"
 #include "bg.h"
 #include "decompress.h"
+#include "hm.h"
 #include "landmark.h"
 #include "main.h"
 #include "menu.h"
+#include "overworld.h"
 #include "palette.h"
+#include "party_menu.h"
 #include "pokenav.h"
 #include "region_map.h"
 #include "sound.h"
@@ -14,6 +17,7 @@
 #include "text_window.h"
 #include "window.h"
 #include "constants/rgb.h"
+#include "constants/moves.h"
 #include "constants/songs.h"
 #include "constants/region_map_sections.h"
 
@@ -26,6 +30,7 @@ struct Pokenav_RegionMapMenu
 {
     u8 unused[12];
     bool32 zoomDisabled;
+    bool32 flyRequested;
     u32 (*callback)(struct Pokenav_RegionMapMenu *);
 };
 
@@ -181,6 +186,7 @@ u32 PokenavCallback_Init_RegionMap(void)
         return FALSE;
 
     state->zoomDisabled = IsEventIslandMapSecId(gMapHeader.regionMapSectionId);
+    state->flyRequested = FALSE;
     if (!state->zoomDisabled)
         state->callback = HandleRegionMapInput;
     else
@@ -209,9 +215,24 @@ static u32 HandleRegionMapInput(struct Pokenav_RegionMapMenu *state)
     case MAP_INPUT_MOVE_END:
         return POKENAV_MAP_FUNC_CURSOR_MOVED;
     case MAP_INPUT_A_BUTTON:
+    {
+        struct RegionMap *regionMap = GetSubstructPtr(POKENAV_SUBSTRUCT_REGION_MAP);
+
+        if ((regionMap->mapSecType == MAPSECTYPE_CITY_CANFLY
+          || regionMap->mapSecType == MAPSECTYPE_BATTLE_FRONTIER)
+         && Overworld_MapTypeAllowsTeleportAndFly(gMapHeader.mapType)
+         && GetPartyMonForHM(MOVE_FLY) != PARTY_SIZE)
+        {
+            gPartyMenu.slotId = GetPartyMonForHM(MOVE_FLY);
+            state->flyRequested = TRUE;
+            RequestPokenavFlyMap(regionMap);
+            state->callback = GetExitRegionMapMenuId;
+            return POKENAV_MAP_FUNC_EXIT;
+        }
         if (!IsRegionMapZoomed())
             return POKENAV_MAP_FUNC_ZOOM_IN;
         return POKENAV_MAP_FUNC_ZOOM_OUT;
+    }
     case MAP_INPUT_B_BUTTON:
         state->callback = GetExitRegionMapMenuId;
         return POKENAV_MAP_FUNC_EXIT;
@@ -233,6 +254,12 @@ static u32 HandleRegionMapInputZoomDisabled(struct Pokenav_RegionMapMenu *state)
 
 static u32 GetExitRegionMapMenuId(struct Pokenav_RegionMapMenu *state)
 {
+    if (state->flyRequested)
+    {
+        FreeRegionMapSubstruct2();
+        FreeRegionMapSubstruct1();
+        return POKENAV_MENU_FUNC_EXIT;
+    }
     return POKENAV_MAIN_MENU_CURSOR_ON_MAP;
 }
 

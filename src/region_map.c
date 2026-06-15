@@ -6,6 +6,7 @@
 #include "gpu_regs.h"
 #include "palette.h"
 #include "party_menu.h"
+#include "pokenav.h"
 #include "trig.h"
 #include "overworld.h"
 #include "event_data.h"
@@ -1686,6 +1687,7 @@ void CB2_OpenFlyMap(void)
         break;
     case 4:
         InitRegionMap(&sFlyMap->regionMap, FALSE);
+        ApplyPokenavFlyMapSelection(&sFlyMap->regionMap);
         CreateRegionMapCursor(TAG_CURSOR, TAG_CURSOR);
         CreateRegionMapPlayerIcon(TAG_PLAYER_ICON, TAG_PLAYER_ICON);
         sFlyMap->mapSecId = sFlyMap->regionMap.mapSecId;

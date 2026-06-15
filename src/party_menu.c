@@ -27,6 +27,7 @@
 #include "frontier_util.h"
 #include "gpu_regs.h"
 #include "graphics.h"
+#include "hm.h"
 #include "international_string_util.h"
 #include "item.h"
 #include "item_menu.h"
@@ -43,6 +44,7 @@
 #include "palette.h"
 #include "party_menu.h"
 #include "player_pc.h"
+#include "pokenav.h"
 #include "pokemon.h"
 #include "pokemon_icon.h"
 #include "pokemon_jump.h"
@@ -2617,10 +2619,17 @@ static void SetPartyMonFieldSelectionActions(struct Pokemon *mons, u8 slotId)
     sPartyMenuInternal->numActions = 0;
     AppendToList(sPartyMenuInternal->actions, &sPartyMenuInternal->numActions, MENU_SUMMARY);
 
-    // Add field moves to action list
+    // HMs can be used by compatible party members without being taught.
+    for (j = FIELD_MOVE_CUT; j <= FIELD_MOVE_WATERFALL; j++)
+    {
+        if (j != FIELD_MOVE_FLY && CanMonUseHM(&mons[slotId], sFieldMoves[j]))
+            AppendToList(sPartyMenuInternal->actions, &sPartyMenuInternal->numActions, j + MENU_FIELD_MOVES);
+    }
+
+    // Non-HM field moves still need to be known.
     for (i = 0; i < MAX_MON_MOVES; i++)
     {
-        for (j = 0; sFieldMoves[j] != FIELD_MOVES_COUNT; j++)
+        for (j = FIELD_MOVE_TELEPORT; sFieldMoves[j] != FIELD_MOVES_COUNT; j++)
         {
             if (GetMonData(&mons[slotId], i + MON_DATA_MOVE1) == sFieldMoves[j])
             {
@@ -3890,6 +3899,13 @@ static bool8 SetUpFieldMove_Fly(void)
 
 void CB2_ReturnToPartyMenuFromFlyMap(void)
 {
+    if (ConsumePokenavFlyMapRequest())
+    {
+        gMain.state = 0;
+        SetMainCallback2(CB2_InitPokeNav);
+        return;
+    }
+
     InitPartyMenu(PARTY_MENU_TYPE_FIELD, PARTY_LAYOUT_SINGLE, PARTY_ACTION_CHOOSE_MON, TRUE, PARTY_MSG_CHOOSE_MON, Task_HandleChooseMonInput, CB2_ReturnToFieldWithOpenMenu);
 }
 
