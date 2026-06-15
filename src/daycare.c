@@ -476,7 +476,9 @@ static void _TriggerPendingDaycareEgg(struct DayCare *daycare)
     // inherit nature
     else
     {
-        u8 wantedNature = GetNatureFromPersonality(GetBoxMonData(&daycare->mons[parent].mon, MON_DATA_PERSONALITY, NULL));
+        u16 parentSpecies = GetBoxMonData(&daycare->mons[parent].mon, MON_DATA_SPECIES, NULL);
+        u32 parentPersonality = GetBoxMonData(&daycare->mons[parent].mon, MON_DATA_PERSONALITY, NULL);
+        u8 wantedNature = GetNatureFromSpeciesAndPersonality(parentSpecies, parentPersonality);
         u32 personality;
 
         do

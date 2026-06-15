@@ -56,6 +56,7 @@
 #include "constants/items.h"
 #include "constants/moves.h"
 #include "constants/party_menu.h"
+#include "constants/region_map_sections.h"
 #include "constants/rgb.h"
 #include "constants/songs.h"
 #include "constants/trainers.h"
@@ -72,6 +73,11 @@ static void CB2_HandleStartMultiBattle(void);
 static void CB2_HandleStartBattle(void);
 static void TryCorrectShedinjaLanguage(struct Pokemon *mon);
 static u8 CreateNPCTrainerParty(struct Pokemon *party, u16 trainerNum, bool8 firstTrainer);
+static u8 GetTrainerEVValue(u16 trainerNum);
+static u8 GetCurrentMajorTrainerEVValue(void);
+static bool8 IsMajorTrainerClass(u8 trainerClass);
+static bool8 IsRematchTrainerId(u16 trainerNum);
+static void SetPartyEqualEVs(struct Pokemon *party, u8 evValue);
 static void BattleMainCB1(void);
 static void CB2_EndLinkBattle(void);
 static void EndLinkBattleInSteps(void);
@@ -701,6 +707,15 @@ static void CB2_InitBattleInternal(void)
         CreateNPCTrainerParty(&gEnemyParty[0], gTrainerBattleOpponent_A, TRUE);
         if (gBattleTypeFlags & BATTLE_TYPE_TWO_OPPONENTS)
             CreateNPCTrainerParty(&gEnemyParty[PARTY_SIZE / 2], gTrainerBattleOpponent_B, FALSE);
+
+        if ((gBattleTypeFlags & BATTLE_TYPE_TRAINER)
+         && (gBattleTypeFlags & (BATTLE_TYPE_FRONTIER | BATTLE_TYPE_TRAINER_HILL | BATTLE_TYPE_EREADER_TRAINER)))
+        {
+            SetPartyEqualEVs(gEnemyParty, 85);
+            if (gBattleTypeFlags & BATTLE_TYPE_FACTORY)
+                SetPartyEqualEVs(gPlayerParty, 85);
+        }
+
         SetWildMonHeldItem();
     }
 
@@ -1994,6 +2009,8 @@ static u8 CreateNPCTrainerParty(struct Pokemon *party, u16 trainerNum, bool8 fir
             monsCount = gTrainers[trainerNum].partySize;
         }
 
+        ev = GetTrainerEVValue(trainerNum);
+
         for (i = 0; i < monsCount; i++)
         {
             const struct TrainerMon *partyData = gTrainers[trainerNum].party.TrainerMon;
@@ -2107,7 +2124,7 @@ static u8 CreateNPCTrainerParty(struct Pokemon *party, u16 trainerNum, bool8 fir
 
             for (j = 0; j < NUM_STATS; j++)
             {
-                SetMonData(&party[i], MON_DATA_HP_EV + j, &partyData[i].evs[j]);
+                SetMonData(&party[i], MON_DATA_HP_EV + j, &ev);
             }
 
             StringCopy(trainerName, gTrainers[trainerNum].trainerName);
@@ -2119,6 +2136,112 @@ static u8 CreateNPCTrainerParty(struct Pokemon *party, u16 trainerNum, bool8 fir
     }
 
     return gTrainers[trainerNum].partySize;
+}
+
+static u8 GetCurrentMajorTrainerEVValue(void)
+{
+    if (!FlagGet(FLAG_BADGE01_GET))
+        return 8;
+    if (!FlagGet(FLAG_BADGE02_GET))
+    {
+        if (FlagGet(FLAG_BADGE04_GET))
+            return 36;
+        if (FlagGet(FLAG_BADGE03_GET))
+            return 24;
+        return 16;
+    }
+    if (!FlagGet(FLAG_BADGE03_GET))
+        return 24;
+    if (!FlagGet(FLAG_BADGE04_GET))
+        return 36;
+    if (!FlagGet(FLAG_BADGE05_GET))
+        return 44;
+    if (!FlagGet(FLAG_BADGE06_GET))
+        return 56;
+    if (!FlagGet(FLAG_BADGE07_GET))
+        return 64;
+    if (!FlagGet(FLAG_BADGE08_GET))
+        return 76;
+    return 80;
+}
+
+static bool8 IsMajorTrainerClass(u8 trainerClass)
+{
+    switch (trainerClass)
+    {
+    case TRAINER_CLASS_AQUA_ADMIN:
+    case TRAINER_CLASS_AQUA_LEADER:
+    case TRAINER_CLASS_ELITE_FOUR:
+    case TRAINER_CLASS_LEADER:
+    case TRAINER_CLASS_MAGMA_ADMIN:
+    case TRAINER_CLASS_MAGMA_LEADER:
+    case TRAINER_CLASS_RIVAL:
+    case TRAINER_CLASS_RS_PROTAG:
+    case TRAINER_CLASS_CHAMPION_STEVEN:
+    case TRAINER_CLASS_LOREKEEPER:
+    case TRAINER_CLASS_WALLY:
+        return TRUE;
+    default:
+        return FALSE;
+    }
+}
+
+static bool8 IsRematchTrainerId(u16 trainerNum)
+{
+    s32 i, j;
+
+    for (i = 0; i < REMATCH_TABLE_ENTRIES; i++)
+    {
+        for (j = 1; j < REMATCHES_COUNT; j++)
+        {
+            if (gRematchTable[i].trainerIds[j] == trainerNum)
+                return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+static u8 GetTrainerEVValue(u16 trainerNum)
+{
+    u8 trainerClass = gTrainers[trainerNum].trainerClass;
+    u8 majorValue;
+
+    if (FlagGet(FLAG_SYS_GAME_CLEAR) || FlagGet(FLAG_IS_CHAMPION))
+        return 85;
+
+    if (trainerClass == TRAINER_CLASS_CHAMPION
+     || trainerClass == TRAINER_CLASS_CHAMPION_STEVEN)
+        return 85;
+
+    if (trainerClass == TRAINER_CLASS_ELITE_FOUR)
+        return 80;
+
+    majorValue = GetCurrentMajorTrainerEVValue();
+
+    if (IsMajorTrainerClass(trainerClass) || IsRematchTrainerId(trainerNum))
+        return majorValue;
+
+    if (gMapHeader.regionMapSectionId == MAPSEC_VICTORY_ROAD)
+        return 60;
+
+    return majorValue / 2;
+}
+
+static void SetPartyEqualEVs(struct Pokemon *party, u8 evValue)
+{
+    s32 i, j;
+
+    for (i = 0; i < PARTY_SIZE; i++)
+    {
+        if (GetMonData(&party[i], MON_DATA_SPECIES) == SPECIES_NONE)
+            continue;
+
+        for (j = 0; j < NUM_STATS; j++)
+            SetMonData(&party[i], MON_DATA_HP_EV + j, &evValue);
+
+        CalculateMonStats(&party[i]);
+    }
 }
 
 static void UNUSED HBlankCB_Battle(void)

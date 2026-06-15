@@ -5244,7 +5244,10 @@ static u16 GetWinningMove(int winnerTournamentId, int loserTournamentId, u8 roun
                 do
                 {
                     var = Random32();
-                } while (gFacilityTrainerMons[DOME_MONS[loserTournamentId][k]].nature != GetNatureFromPersonality(var));
+                } while (GetNatureForSpecies(
+                             gFacilityTrainerMons[DOME_MONS[loserTournamentId][k]].species,
+                             gFacilityTrainerMons[DOME_MONS[loserTournamentId][k]].nature)
+                      != GetNatureFromPersonality(var));
 
                 targetSpecies = gFacilityTrainerMons[DOME_MONS[loserTournamentId][k]].species;
                 if (var & 1)

@@ -82,6 +82,7 @@ EWRAM_DATA struct SpriteTemplate gMultiuseSpriteTemplate = {0};
 EWRAM_DATA static struct MonSpritesGfxManager *sMonSpritesGfxManagers[MON_SPR_GFX_MANAGERS_COUNT] = {NULL};
 
 #include "data/battle_moves.h"
+#include "data/pokemon/species_natures.h"
 
 // Used in an unreferenced function in RS.
 // Unreferenced here and in FRLG.
@@ -2228,9 +2229,14 @@ void CreateBoxMon(struct BoxPokemon *boxMon, u16 species, u8 level, u8 fixedIV, 
     if (hasFixedPersonality)
         personality = fixedPersonality;
     else
-        personality = Random32();
+    {
+        do
+        {
+            personality = Random32();
+        } while (!IsNatureAllowedForSpecies(species, GetNatureFromPersonality(personality)));
+    }
 
-SetBoxMonData(boxMon, MON_DATA_PERSONALITY, &personality);
+    SetBoxMonData(boxMon, MON_DATA_PERSONALITY, &personality);
 
     // Determine original trainer ID
     switch (otIdType)
@@ -2281,7 +2287,10 @@ SetBoxMonData(boxMon, MON_DATA_PERSONALITY, &personality);
                 u32 rolls = 0;
                 do
                 {
-                    personality = Random32();
+                    do
+                    {
+                        personality = Random32();
+                    } while (!IsNatureAllowedForSpecies(species, GetNatureFromPersonality(personality)));
                     shinyValue = HIHALF(value) ^ LOHALF(value) ^ HIHALF(personality) ^ LOHALF(personality);
                     rolls++;
                 } while (shinyValue >= SHINY_ODDS && rolls < I_SHINY_CHARM_REROLLS);
@@ -2356,6 +2365,7 @@ void CreateMonWithNature(struct Pokemon *mon, u16 species, u8 level, u8 fixedIV,
 {
     u32 personality;
 
+    nature = GetNatureForSpecies(species, nature);
     do
     {
         personality = Random32();
@@ -2370,6 +2380,7 @@ void CreateMonWithGenderNatureLetter(struct Pokemon *mon, u16 species, u8 level,
     u32 personality;
     u8 genderRatio;
 
+    nature = GetNatureForSpecies(species, nature);
     genderRatio = gSpeciesInfo[species].genderRatio;
 
 // Infinite loop protection
@@ -2413,7 +2424,8 @@ void CreateMaleMon(struct Pokemon *mon, u16 species, u8 level)
         otId = Random32();
         personality = Random32();
     }
-    while (GetGenderFromSpeciesAndPersonality(species, personality) != MON_MALE);
+    while (GetGenderFromSpeciesAndPersonality(species, personality) != MON_MALE
+        || !IsNatureAllowedForSpecies(species, GetNatureFromPersonality(personality)));
     CreateMon(mon, species, level, USE_RANDOM_IVS, TRUE, personality, OT_ID_PRESET, otId);
 }
 
@@ -2622,6 +2634,8 @@ void CreateMonWithEVSpreadNatureOTID(struct Pokemon *mon, u16 species, u8 level,
     s32 statCount = 0;
     u8 evsBits;
     u16 evAmount;
+
+    nature = GetNatureForSpecies(species, nature);
 
     // i is reused as personality value
     do
@@ -5550,12 +5564,149 @@ u8 *UseStatIncreaseItem(u16 itemId)
 
 u8 GetNature(struct Pokemon *mon)
 {
-    return GetMonData(mon, MON_DATA_PERSONALITY, 0) % NUM_NATURES;
+    u16 species = GetMonData(mon, MON_DATA_SPECIES, NULL);
+    u32 personality = GetMonData(mon, MON_DATA_PERSONALITY, NULL);
+
+    return GetNatureFromSpeciesAndPersonality(species, personality);
 }
 
 u8 GetNatureFromPersonality(u32 personality)
 {
     return personality % NUM_NATURES;
+}
+
+static u32 GetSpeciesNatureMask(u16 species)
+{
+    if (species < NUM_SPECIES && sSpeciesNatureMasks[species] != 0)
+        return sSpeciesNatureMasks[species];
+
+    return (1u << NATURE_ADAMANT)
+         | (1u << NATURE_MODEST)
+         | (1u << NATURE_JOLLY)
+         | (1u << NATURE_TIMID);
+}
+
+bool8 IsNatureAllowedForSpecies(u16 species, u8 nature)
+{
+    if (nature >= NUM_NATURES)
+        return FALSE;
+
+    return (GetSpeciesNatureMask(species) & (1u << nature)) != 0;
+}
+
+u8 GetNatureForSpecies(u16 species, u8 nature)
+{
+    u8 candidate;
+    u8 stat;
+    u8 allowedCount = 0;
+    bool8 isNeutral = TRUE;
+    s32 bestScore = -1;
+    u8 bestNature = NATURE_HARDY;
+    u32 natureMask = GetSpeciesNatureMask(species);
+
+    nature %= NUM_NATURES;
+    if (natureMask & (1u << nature))
+        return nature;
+
+    for (stat = 0; stat < NUM_NATURE_STATS; stat++)
+    {
+        if (gNatureStatTable[nature][stat] != 0)
+        {
+            isNeutral = FALSE;
+            break;
+        }
+    }
+
+    if (isNeutral)
+    {
+        u8 target = nature % 4;
+
+        for (candidate = 0; candidate < NUM_NATURES; candidate++)
+        {
+            if (natureMask & (1u << candidate))
+            {
+                if (allowedCount == target)
+                    return candidate;
+                allowedCount++;
+            }
+        }
+    }
+
+    for (candidate = 0; candidate < NUM_NATURES; candidate++)
+    {
+        s32 score = 0;
+
+        if (!(natureMask & (1u << candidate)))
+            continue;
+
+        for (stat = 0; stat < NUM_NATURE_STATS; stat++)
+        {
+            s8 wanted = gNatureStatTable[nature][stat];
+            s8 offered = gNatureStatTable[candidate][stat];
+
+            if (wanted != 0 && wanted == offered)
+                score += wanted > 0 ? 8 : 4;
+            if (wanted > 0 && offered < 0)
+                score -= 4;
+            if (wanted < 0 && offered > 0)
+                score -= 2;
+        }
+
+        // Offensive and defensive boosts are closer to others in the same role.
+        for (stat = 0; stat < NUM_NATURE_STATS; stat++)
+        {
+            if (gNatureStatTable[nature][stat] <= 0
+             || gNatureStatTable[candidate][stat] <= 0)
+                continue;
+
+            if ((stat == STAT_ATK - 1 || stat == STAT_SPEED - 1 || stat == STAT_SPATK - 1)
+             == (gNatureStatTable[candidate][STAT_ATK - 1] > 0
+              || gNatureStatTable[candidate][STAT_SPEED - 1] > 0
+              || gNatureStatTable[candidate][STAT_SPATK - 1] > 0))
+                score += 2;
+            break;
+        }
+
+        if (score > bestScore)
+        {
+            bestScore = score;
+            bestNature = candidate;
+        }
+    }
+
+    return bestNature;
+}
+
+u8 GetNatureFromSpeciesAndPersonality(u16 species, u32 personality)
+{
+    return GetNatureForSpecies(species, GetNatureFromPersonality(personality));
+}
+
+u8 GetRandomNatureForSpecies(u16 species)
+{
+    u8 nature;
+    u8 count = 0;
+    u8 selected;
+    u32 natureMask = GetSpeciesNatureMask(species);
+
+    for (nature = 0; nature < NUM_NATURES; nature++)
+    {
+        if (natureMask & (1u << nature))
+            count++;
+    }
+
+    selected = Random() % count;
+    for (nature = 0; nature < NUM_NATURES; nature++)
+    {
+        if (natureMask & (1u << nature))
+        {
+            if (selected == 0)
+                return nature;
+            selected--;
+        }
+    }
+
+    return NATURE_ADAMANT;
 }
 
 u16 GetEvolutionTargetSpecies(struct Pokemon *mon, u8 mode, u16 evolutionItem)
@@ -6603,6 +6754,12 @@ s8 GetMonFlavorRelation(struct Pokemon *mon, u8 flavor)
 s8 GetFlavorRelationByPersonality(u32 personality, u8 flavor)
 {
     u8 nature = GetNatureFromPersonality(personality);
+    return gPokeblockFlavorCompatibilityTable[nature * FLAVOR_COUNT + flavor];
+}
+
+s8 GetFlavorRelationBySpeciesAndPersonality(u16 species, u32 personality, u8 flavor)
+{
+    u8 nature = GetNatureFromSpeciesAndPersonality(species, personality);
     return gPokeblockFlavorCompatibilityTable[nature * FLAVOR_COUNT + flavor];
 }
 
