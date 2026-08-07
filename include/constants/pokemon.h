@@ -21,7 +21,8 @@
 #define TYPE_ICE              15
 #define TYPE_DRAGON           16
 #define TYPE_DARK             17
-#define NUMBER_OF_MON_TYPES   18
+#define TYPE_FAIRY            18
+#define NUMBER_OF_MON_TYPES   19
 
 // Pokémon egg groups
 #define EGG_GROUP_NONE                0
@@ -125,7 +126,7 @@
 #define ABILITY_HIDDEN 2
 
 // Shiny odds
-#define SHINY_ODDS 8 // Actual probability is SHINY_ODDS/65536
+#define SHINY_ODDS 6554 // Actual probability is SHINY_ODDS/65536 (~10%)
 
 // Ribbon IDs used by TV and Pokénav
 #define CHAMPION_RIBBON       0

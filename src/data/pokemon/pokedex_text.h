@@ -2319,3 +2319,9 @@ const u8 gDeoxysPokedexText[] = _(
     "extraterrestrial virus exposed to a laser\n"
     "beam. The crystalline organ on its chest\n"
     "appears to be its brain.");
+
+const u8 gMismagiusPokedexText[] = _(
+    "Its eerie cries resemble magical chants.\n"
+    "Those who hear them may suffer headaches,\n"
+    "strange visions, or on rare occasions,\n"
+    "a sudden feeling of happiness.");

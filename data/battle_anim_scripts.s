@@ -371,7 +371,13 @@ gBattleAnims_Moves::
 	.4byte Move_WATER_PULSE
 	.4byte Move_DOOM_DESIRE
 	.4byte Move_PSYCHO_BOOST
-	.4byte Move_COUNT @ cannot be reached, because last move is Psycho Boost
+	.4byte Move_FAIRY_WIND
+	.4byte Move_DISARMING_VOICE
+	.4byte Move_DRAINING_KISS
+	.4byte Move_DAZZLING_GLEAM
+	.4byte Move_PLAY_ROUGH
+	.4byte Move_MOONBLAST
+	.4byte Move_COUNT @ cannot be reached, because last move is Moonblast
 
 	.align 2
 gBattleAnims_StatusConditions::
@@ -9918,6 +9924,61 @@ WeatherBallIce:
 	createvisualtask AnimTask_ShakeMon2, 2, ANIM_TARGET, 2, 0, 8, 1
 	playsewithpan SE_M_ICY_WIND, SOUND_PAN_TARGET
 	call IceCrystalEffectShort
+	waitforvisualfinish
+	end
+
+Move_FAIRY_WIND:
+	goto Move_SILVER_WIND
+
+Move_DISARMING_VOICE:
+	goto Move_HYPER_VOICE
+
+Move_DRAINING_KISS:
+	loadspritegfx ANIM_TAG_PINK_HEART
+	playsewithpan SE_M_ATTRACT, SOUND_PAN_TARGET
+	createsprite gPinkHeartSpriteTemplate, ANIM_TARGET, 3, -256, -42
+	createsprite gPinkHeartSpriteTemplate, ANIM_TARGET, 3, 128, -14
+	createsprite gPinkHeartSpriteTemplate, ANIM_TARGET, 3, 416, -38
+	createsprite gPinkHeartSpriteTemplate, ANIM_TARGET, 3, -128, -22
+	waitforvisualfinish
+	goto Move_MEGA_DRAIN
+
+Move_DAZZLING_GLEAM:
+	goto Move_FLASH
+
+Move_PLAY_ROUGH:
+	goto Move_TAKE_DOWN
+
+Move_MOONBLAST:
+	loadspritegfx ANIM_TAG_MOON
+	loadspritegfx ANIM_TAG_GREEN_SPARKLE
+	loadspritegfx ANIM_TAG_SMALL_BUBBLES
+	loadspritegfx ANIM_TAG_WHITE_FEATHER
+	setalpha 0, 16
+	createsprite gSimplePaletteBlendSpriteTemplate, ANIM_ATTACKER, 2, F_PAL_BG, 1, 0, 12, RGB_BLACK
+	waitforvisualfinish
+	createsprite gMoonSpriteTemplate, ANIM_ATTACKER, 2, 120, 48
+	createvisualtask AnimTask_AlphaFadeIn, 3, 0, 16, 16, 0, 1
+	playsewithpan SE_M_MOONLIGHT, 0
+	delay 12
+	createsprite gMoonlightSparkleSpriteTemplate, ANIM_ATTACKER, 40, -18, 0
+	delay 8
+	createsprite gMoonlightSparkleSpriteTemplate, ANIM_ATTACKER, 40, 18, 0
+	delay 8
+	createsprite gMoonlightSparkleSpriteTemplate, ANIM_ATTACKER, 40, 0, 0
+	delay 10
+	playsewithpan SE_M_STRING_SHOT, SOUND_PAN_ATTACKER
+	createsprite gMistBallSpriteTemplate, ANIM_TARGET, 0, 0, 0, 0, 0, 30, 0
+	delay 26
+	playsewithpan SE_M_SAND_ATTACK, SOUND_PAN_TARGET
+	createvisualtask AnimTask_ShakeMon, 2, ANIM_TARGET, 5, 0, 48, 0
+	createvisualtask AnimTask_MistBallFog, 5
+	createvisualtask AnimTask_BlendBattleAnimPal, 10, F_PAL_TARGET, 2, 0, 16, RGB_WHITE
+	createsprite gComplexPaletteBlendSpriteTemplate, ANIM_ATTACKER, 0, F_PAL_BG, 1, 1, RGB(31, 18, 31), 10, RGB_WHITE, 10
+	createvisualtask AnimTask_Flash, 2
+	delay 48
+	createvisualtask AnimTask_BlendBattleAnimPal, 10, F_PAL_TARGET, 2, 16, 0, RGB_WHITE
+	createvisualtask AnimTask_MoonlightEndFade, 2
 	waitforvisualfinish
 	end
 

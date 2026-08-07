@@ -3191,7 +3191,7 @@
               {
                 "min_level": 6,
                 "max_level": 6,
-                "species": "SPECIES_ZIGZAGOON"
+                "species": "SPECIES_EEVEE"
               },
               {
                 "min_level": 7,
@@ -3260,7 +3260,7 @@
               {
                 "min_level": 6,
                 "max_level": 6,
-                "species": "SPECIES_CATERPIE"
+                "species": "SPECIES_EEVEE"
               },
               {
                 "min_level": 7,
@@ -3605,7 +3605,7 @@
               {
                 "min_level": 13,
                 "max_level": 13,
-                "species": "SPECIES_ARON"
+                "species": "SPECIES_MISDREAVUS"
               },
               {
                 "min_level": 11,
@@ -3674,7 +3674,7 @@
               {
                 "min_level": 13,
                 "max_level": 13,
-                "species": "SPECIES_ARON"
+                "species": "SPECIES_MISDREAVUS"
               },
               {
                 "min_level": 11,

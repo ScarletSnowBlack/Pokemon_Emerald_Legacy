@@ -116,6 +116,8 @@ static void SpriteCB_FlyDestIcon(struct Sprite *sprite);
 static void CB_FadeInFlyMap(void);
 static void CB_HandleFlyMapInput(void);
 static void CB_ExitFlyMap(void);
+static void CB_ExitFlyMapNoFade(void);
+static void ExitFlyMap(void);
 
 static const u16 sRegionMapCursorPal[] = INCBIN_U16("graphics/pokenav/region_map/cursor.gbapal");
 static const u32 sRegionMapCursorSmallGfxLZ[] = INCBIN_U32("graphics/pokenav/region_map/cursor_small.4bpp.lz");
@@ -1688,6 +1690,7 @@ void CB2_OpenFlyMap(void)
     case 4:
         InitRegionMap(&sFlyMap->regionMap, FALSE);
         ApplyPokenavFlyMapSelection(&sFlyMap->regionMap);
+        sFlyMap->choseFlyLocation = ConsumePokenavFlyMapRequest();
         CreateRegionMapCursor(TAG_CURSOR, TAG_CURSOR);
         CreateRegionMapPlayerIcon(TAG_PLAYER_ICON, TAG_PLAYER_ICON);
         sFlyMap->mapSecId = sFlyMap->regionMap.mapSecId;
@@ -1727,7 +1730,10 @@ void CB2_OpenFlyMap(void)
         ShowBg(0);
         ShowBg(1);
         ShowBg(2);
-        SetFlyMapCallback(CB_FadeInFlyMap);
+        if (sFlyMap->choseFlyLocation)
+            SetFlyMapCallback(CB_ExitFlyMapNoFade);
+        else
+            SetFlyMapCallback(CB_FadeInFlyMap);
         SetMainCallback2(CB2_FlyMap);
         gMain.state++;
         break;
@@ -1986,40 +1992,48 @@ static void CB_ExitFlyMap(void)
         break;
     case 1:
         if (!UpdatePaletteFade())
-        {
-            FreeRegionMapIconResources();
-            if (sFlyMap->choseFlyLocation)
-            {
-                switch (sFlyMap->regionMap.mapSecId)
-                {
-                case MAPSEC_SOUTHERN_ISLAND:
-                    SetWarpDestinationToHealLocation(HEAL_LOCATION_SOUTHERN_ISLAND_EXTERIOR);
-                    break;
-                case MAPSEC_BATTLE_FRONTIER:
-                    SetWarpDestinationToHealLocation(HEAL_LOCATION_BATTLE_FRONTIER_OUTSIDE_EAST);
-                    break;
-                case MAPSEC_LITTLEROOT_TOWN:
-                    SetWarpDestinationToHealLocation(gSaveBlock2Ptr->playerGender == MALE ? HEAL_LOCATION_LITTLEROOT_TOWN_BRENDANS_HOUSE : HEAL_LOCATION_LITTLEROOT_TOWN_MAYS_HOUSE);
-                    break;
-                case MAPSEC_EVER_GRANDE_CITY:
-                    SetWarpDestinationToHealLocation(FlagGet(FLAG_LANDMARK_POKEMON_LEAGUE) && sFlyMap->regionMap.posWithinMapSec == 0 ? HEAL_LOCATION_EVER_GRANDE_CITY_POKEMON_LEAGUE : HEAL_LOCATION_EVER_GRANDE_CITY);
-                    break;
-                default:
-                    if (sMapHealLocations[sFlyMap->regionMap.mapSecId][2] != HEAL_LOCATION_NONE)
-                        SetWarpDestinationToHealLocation(sMapHealLocations[sFlyMap->regionMap.mapSecId][2]);
-                    else
-                        SetWarpDestinationToMapWarp(sMapHealLocations[sFlyMap->regionMap.mapSecId][0], sMapHealLocations[sFlyMap->regionMap.mapSecId][1], WARP_ID_NONE);
-                    break;
-                }
-                ReturnToFieldFromFlyMapSelect();
-            }
-            else
-            {
-                SetMainCallback2(CB2_ReturnToPartyMenuFromFlyMap);
-            }
-            TRY_FREE_AND_SET_NULL(sFlyMap);
-            FreeAllWindowBuffers();
-        }
+            ExitFlyMap();
         break;
     }
+}
+
+static void CB_ExitFlyMapNoFade(void)
+{
+    ExitFlyMap();
+}
+
+static void ExitFlyMap(void)
+{
+    FreeRegionMapIconResources();
+    if (sFlyMap->choseFlyLocation)
+    {
+        switch (sFlyMap->regionMap.mapSecId)
+        {
+        case MAPSEC_SOUTHERN_ISLAND:
+            SetWarpDestinationToHealLocation(HEAL_LOCATION_SOUTHERN_ISLAND_EXTERIOR);
+            break;
+        case MAPSEC_BATTLE_FRONTIER:
+            SetWarpDestinationToHealLocation(HEAL_LOCATION_BATTLE_FRONTIER_OUTSIDE_EAST);
+            break;
+        case MAPSEC_LITTLEROOT_TOWN:
+            SetWarpDestinationToHealLocation(gSaveBlock2Ptr->playerGender == MALE ? HEAL_LOCATION_LITTLEROOT_TOWN_BRENDANS_HOUSE : HEAL_LOCATION_LITTLEROOT_TOWN_MAYS_HOUSE);
+            break;
+        case MAPSEC_EVER_GRANDE_CITY:
+            SetWarpDestinationToHealLocation(FlagGet(FLAG_LANDMARK_POKEMON_LEAGUE) && sFlyMap->regionMap.posWithinMapSec == 0 ? HEAL_LOCATION_EVER_GRANDE_CITY_POKEMON_LEAGUE : HEAL_LOCATION_EVER_GRANDE_CITY);
+            break;
+        default:
+            if (sMapHealLocations[sFlyMap->regionMap.mapSecId][2] != HEAL_LOCATION_NONE)
+                SetWarpDestinationToHealLocation(sMapHealLocations[sFlyMap->regionMap.mapSecId][2]);
+            else
+                SetWarpDestinationToMapWarp(sMapHealLocations[sFlyMap->regionMap.mapSecId][0], sMapHealLocations[sFlyMap->regionMap.mapSecId][1], WARP_ID_NONE);
+            break;
+        }
+        ReturnToFieldFromFlyMapSelect();
+    }
+    else
+    {
+        SetMainCallback2(CB2_ReturnToPartyMenuFromFlyMap);
+    }
+    TRY_FREE_AND_SET_NULL(sFlyMap);
+    FreeAllWindowBuffers();
 }

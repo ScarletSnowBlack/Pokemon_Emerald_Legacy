@@ -4459,6 +4459,15 @@ BattleScript_ItemHealHP_Ret::
 	datahpupdate BS_ATTACKER
 	return
 
+BattleScript_FlameOrbBurnEnd2::
+	playanimation BS_ATTACKER, B_ANIM_HELD_ITEM_EFFECT
+	statusanimation BS_EFFECT_BATTLER
+	printstring STRINGID_PKMNWASBURNED
+	waitmessage B_WAIT_TIME_LONG
+	updatestatusicon BS_EFFECT_BATTLER
+	waitstate
+	end2
+
 BattleScript_SelectingNotAllowedMoveChoiceItem::
 	printselectionstring STRINGID_ITEMALLOWSONLYYMOVE
 	endselectionscript

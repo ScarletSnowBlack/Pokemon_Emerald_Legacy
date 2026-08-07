@@ -2362,7 +2362,7 @@ void ShowScrollableMultichoice(void)
         break;
     case SCROLL_MULTI_BF_EXCHANGE_CORNER_HOLD_ITEM_VENDOR:
         task->tMaxItemsOnScreen = MAX_SCROLL_MULTI_ON_SCREEN;
-        task->tNumItems = 11;
+        task->tNumItems = 12;
         task->tLeft = 14;
         task->tTop = 1;
         task->tWidth = 15;
@@ -2510,6 +2510,7 @@ static const u8 *const sScrollableMultichoiceOptions[][MAX_SCROLL_MULTI_LENGTH] 
         gText_WhiteHerb48BP,
         gText_QuickClaw48BP,
         gText_MentalHerb48BP,
+        gText_FlameOrb48BP,
         gText_BrightPowder64BP,
         gText_ChoiceBand64BP,
         gText_KingsRock64BP,

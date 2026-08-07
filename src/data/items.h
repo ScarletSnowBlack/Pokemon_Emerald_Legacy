@@ -2281,6 +2281,18 @@ const struct Item gItems[] =
         .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
     },
 
+    [ITEM_FLAME_ORB] =
+    {
+        .name = _("FLAME ORB"),
+        .itemId = ITEM_FLAME_ORB,
+        .price = 100,
+        .holdEffect = HOLD_EFFECT_FLAME_ORB,
+        .description = sFlameOrbDesc,
+        .pocket = POCKET_ITEMS,
+        .type = ITEM_USE_BAG_MENU,
+        .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
+    },
+
     [ITEM_KINGS_ROCK] =
     {
         .name = _("KING'S ROCK"),

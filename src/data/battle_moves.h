@@ -2422,7 +2422,7 @@ const struct BattleMove gBattleMoves[MOVES_COUNT] =
     {
         .effect = EFFECT_CONFUSE,
         .power = 0,
-        .type = TYPE_NORMAL,
+        .type = TYPE_FAIRY,
         .accuracy = 75,
         .pp = 10,
         .secondaryEffectChance = 0,
@@ -2656,7 +2656,7 @@ const struct BattleMove gBattleMoves[MOVES_COUNT] =
     {
         .effect = EFFECT_ATTACK_DOWN_2,
         .power = 0,
-        .type = TYPE_NORMAL,
+        .type = TYPE_FAIRY,
         .accuracy = 100,
         .pp = 20,
         .secondaryEffectChance = 0,
@@ -3072,7 +3072,7 @@ const struct BattleMove gBattleMoves[MOVES_COUNT] =
     {
         .effect = EFFECT_MOONLIGHT,
         .power = 0,
-        .type = TYPE_NORMAL,
+        .type = TYPE_FAIRY,
         .accuracy = 0,
         .pp = 5,
         .secondaryEffectChance = 0,
@@ -4614,6 +4614,84 @@ const struct BattleMove gBattleMoves[MOVES_COUNT] =
         .priority = 0,
         .flags = FLAG_PROTECT_AFFECTED | FLAG_MIRROR_MOVE_AFFECTED | FLAG_KINGS_ROCK_AFFECTED,
     },
+
+    [MOVE_FAIRY_WIND] =
+    {
+        .effect = EFFECT_HIT,
+        .power = 40,
+        .type = TYPE_FAIRY,
+        .accuracy = 100,
+        .pp = 30,
+        .secondaryEffectChance = 0,
+        .target = MOVE_TARGET_SELECTED,
+        .priority = 0,
+        .flags = FLAG_PROTECT_AFFECTED | FLAG_MIRROR_MOVE_AFFECTED | FLAG_KINGS_ROCK_AFFECTED,
+    },
+
+    [MOVE_DISARMING_VOICE] =
+    {
+        .effect = EFFECT_ALWAYS_HIT,
+        .power = 40,
+        .type = TYPE_FAIRY,
+        .accuracy = 0,
+        .pp = 15,
+        .secondaryEffectChance = 0,
+        .target = MOVE_TARGET_BOTH,
+        .priority = 0,
+        .flags = FLAG_PROTECT_AFFECTED | FLAG_MIRROR_MOVE_AFFECTED | FLAG_KINGS_ROCK_AFFECTED,
+    },
+
+    [MOVE_DRAINING_KISS] =
+    {
+        .effect = EFFECT_ABSORB,
+        .power = 50,
+        .type = TYPE_FAIRY,
+        .accuracy = 100,
+        .pp = 10,
+        .secondaryEffectChance = 0,
+        .target = MOVE_TARGET_SELECTED,
+        .priority = 0,
+        .flags = FLAG_PROTECT_AFFECTED | FLAG_MIRROR_MOVE_AFFECTED | FLAG_KINGS_ROCK_AFFECTED,
+    },
+
+    [MOVE_DAZZLING_GLEAM] =
+    {
+        .effect = EFFECT_HIT,
+        .power = 80,
+        .type = TYPE_FAIRY,
+        .accuracy = 100,
+        .pp = 10,
+        .secondaryEffectChance = 0,
+        .target = MOVE_TARGET_BOTH,
+        .priority = 0,
+        .flags = FLAG_PROTECT_AFFECTED | FLAG_MIRROR_MOVE_AFFECTED | FLAG_KINGS_ROCK_AFFECTED,
+    },
+
+    [MOVE_PLAY_ROUGH] =
+    {
+        .effect = EFFECT_ATTACK_DOWN_HIT,
+        .power = 90,
+        .type = TYPE_FAIRY,
+        .accuracy = 90,
+        .pp = 10,
+        .secondaryEffectChance = 10,
+        .target = MOVE_TARGET_SELECTED,
+        .priority = 0,
+        .flags = FLAG_MAKES_CONTACT | FLAG_PROTECT_AFFECTED | FLAG_MIRROR_MOVE_AFFECTED | FLAG_KINGS_ROCK_AFFECTED,
+    },
+
+    [MOVE_MOONBLAST] =
+    {
+        .effect = EFFECT_SPECIAL_ATTACK_DOWN_HIT,
+        .power = 95,
+        .type = TYPE_FAIRY,
+        .accuracy = 100,
+        .pp = 15,
+        .secondaryEffectChance = 30,
+        .target = MOVE_TARGET_SELECTED,
+        .priority = 0,
+        .flags = FLAG_PROTECT_AFFECTED | FLAG_MIRROR_MOVE_AFFECTED | FLAG_KINGS_ROCK_AFFECTED,
+    },
 };
 
 // Kept separate from gBattleMoves to preserve its legacy ROM-header layout.
@@ -4974,6 +5052,12 @@ const u8 gMoveDamageCategories[MOVES_COUNT] =
     [MOVE_WATER_PULSE] = DAMAGE_CATEGORY_SPECIAL,
     [MOVE_DOOM_DESIRE] = DAMAGE_CATEGORY_SPECIAL,
     [MOVE_PSYCHO_BOOST] = DAMAGE_CATEGORY_SPECIAL,
+    [MOVE_FAIRY_WIND] = DAMAGE_CATEGORY_SPECIAL,
+    [MOVE_DISARMING_VOICE] = DAMAGE_CATEGORY_SPECIAL,
+    [MOVE_DRAINING_KISS] = DAMAGE_CATEGORY_SPECIAL,
+    [MOVE_DAZZLING_GLEAM] = DAMAGE_CATEGORY_SPECIAL,
+    [MOVE_PLAY_ROUGH] = DAMAGE_CATEGORY_PHYSICAL,
+    [MOVE_MOONBLAST] = DAMAGE_CATEGORY_SPECIAL,
 };
 
 static const u8 sMoveCategoryPhysical[] = _("PHYSICAL");

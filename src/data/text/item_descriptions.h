@@ -753,6 +753,11 @@ static const u8 sChoiceBandDesc[] = _(
     "power, but permits\n"
     "only that move.");
 
+static const u8 sFlameOrbDesc[] = _(
+    "A bizarre orb that\n"
+    "burns the holder\n"
+    "in battle.");
+
 static const u8 sKingsRockDesc[] = _(
     "A hold item that\n"
     "may cause flinching\n"

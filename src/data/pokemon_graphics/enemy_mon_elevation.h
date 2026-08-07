@@ -32,6 +32,7 @@ const u8 gEnemyMonElevation[NUM_SPECIES] =
     [SPECIES_JUMPLUFF] = 9,
     [SPECIES_YANMA] = 8,
     [SPECIES_MISDREAVUS] = 8,
+    [SPECIES_MISMAGIUS] = 8,
     [SPECIES_UNOWN] = 8,
     [SPECIES_GLIGAR] = 6,
     [SPECIES_LUGIA] = 6,

@@ -342,13 +342,14 @@ BattleFrontier_ExchangeServiceCorner_EventScript_ChooseHoldItem::
 	case 1, BattleFrontier_ExchangeServiceCorner_EventScript_WhiteHerb
 	case 2, BattleFrontier_ExchangeServiceCorner_EventScript_QuickClaw
 	case 3, BattleFrontier_ExchangeServiceCorner_EventScript_MentalHerb
-	case 4, BattleFrontier_ExchangeServiceCorner_EventScript_Brightpowder
-	case 5, BattleFrontier_ExchangeServiceCorner_EventScript_ChoiceBand
-	case 6, BattleFrontier_ExchangeServiceCorner_EventScript_KingsRock
-	case 7, BattleFrontier_ExchangeServiceCorner_EventScript_FocusBand
-	case 8, BattleFrontier_ExchangeServiceCorner_EventScript_ScopeLens
-	case 9, BattleFrontier_ExchangeServiceCorner_EventScript_MetalCoat
-	case 10, BattleFrontier_ExchangeServiceCorner_EventScript_ClerkGoodbye
+	case 4, BattleFrontier_ExchangeServiceCorner_EventScript_FlameOrb
+	case 5, BattleFrontier_ExchangeServiceCorner_EventScript_Brightpowder
+	case 6, BattleFrontier_ExchangeServiceCorner_EventScript_ChoiceBand
+	case 7, BattleFrontier_ExchangeServiceCorner_EventScript_KingsRock
+	case 8, BattleFrontier_ExchangeServiceCorner_EventScript_FocusBand
+	case 9, BattleFrontier_ExchangeServiceCorner_EventScript_ScopeLens
+	case 10, BattleFrontier_ExchangeServiceCorner_EventScript_MetalCoat
+	case 11, BattleFrontier_ExchangeServiceCorner_EventScript_ClerkGoodbye
 	case MULTI_B_PRESSED, BattleFrontier_ExchangeServiceCorner_EventScript_ClerkGoodbye
 	end
 
@@ -381,6 +382,14 @@ BattleFrontier_ExchangeServiceCorner_EventScript_MentalHerb::
 	goto_if_eq VAR_RESULT, NO, BattleFrontier_ExchangeServiceCorner_EventScript_ChooseHoldItem
 	setvar VAR_0x8008, 48
 	setvar VAR_0x8009, ITEM_MENTAL_HERB
+	goto BattleFrontier_ExchangeServiceCorner_EventScript_TryPurchasePrize
+	end
+
+BattleFrontier_ExchangeServiceCorner_EventScript_FlameOrb::
+	msgbox BattleFrontier_ExchangeServiceCorner_Text_ConfirmFlameOrb, MSGBOX_YESNO
+	goto_if_eq VAR_RESULT, NO, BattleFrontier_ExchangeServiceCorner_EventScript_ChooseHoldItem
+	setvar VAR_0x8008, 48
+	setvar VAR_0x8009, ITEM_FLAME_ORB
 	goto BattleFrontier_ExchangeServiceCorner_EventScript_TryPurchasePrize
 	end
 
@@ -683,6 +692,10 @@ BattleFrontier_ExchangeServiceCorner_Text_ConfirmMentalHerb:
 	.string "You've chosen the MENTAL HERB.\n"
 	.string "Is that correct?$"
 
+BattleFrontier_ExchangeServiceCorner_Text_ConfirmFlameOrb:
+	.string "You've chosen the FLAME ORB.\n"
+	.string "Is that correct?$"
+
 BattleFrontier_ExchangeServiceCorner_Text_ConfirmChoiceBand:
 	.string "You've chosen the CHOICE BAND.\n"
 	.string "Is that correct?$"
@@ -893,6 +906,10 @@ BattleFrontier_ExchangeServiceCorner_Text_QuickClawDesc::
 BattleFrontier_ExchangeServiceCorner_Text_MentalHerbDesc::
 	.string "A hold item that snaps POKéMON out\n"
 	.string "of infatuation.$"
+
+BattleFrontier_ExchangeServiceCorner_Text_FlameOrbDesc::
+	.string "A bizarre orb that burns the holder\n"
+	.string "in battle.$"
 
 BattleFrontier_ExchangeServiceCorner_Text_BrightpowderDesc::
 	.string "A hold item that casts a glare to\n"

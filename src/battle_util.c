@@ -3241,6 +3241,26 @@ enum
         effect = ITEM_STATS_CHANGE;                                                         \
     }
 
+static bool8 TryFlameOrbBurn(u8 battlerId)
+{
+    if (gBattleMons[battlerId].hp
+     && !(gBattleMons[battlerId].status1 & STATUS1_ANY)
+     && !IS_BATTLER_OF_TYPE(battlerId, TYPE_FIRE)
+     && gBattleMons[battlerId].ability != ABILITY_WATER_VEIL)
+    {
+        gBattleMons[battlerId].status1 |= STATUS1_BURN;
+        gBattleScripting.battler = battlerId;
+        gPotentialItemEffectBattler = battlerId;
+        gActiveBattler = gBattlerAttacker = battlerId;
+        gEffectBattler = battlerId;
+        BattleScriptExecute(BattleScript_FlameOrbBurnEnd2);
+        RecordItemEffectBattle(battlerId, HOLD_EFFECT_FLAME_ORB);
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
 u8 ItemBattleEffects(u8 caseID, u8 battlerId, bool8 moveTurn)
 {
     int i = 0;
@@ -3315,6 +3335,14 @@ u8 ItemBattleEffects(u8 caseID, u8 battlerId, bool8 moveTurn)
                 gPotentialItemEffectBattler = battlerId;
                 gActiveBattler = gBattlerAttacker = battlerId;
                 BattleScriptExecute(BattleScript_WhiteHerbEnd2);
+            }
+            break;
+        case HOLD_EFFECT_FLAME_ORB:
+            if (TryFlameOrbBurn(battlerId))
+            {
+                BtlController_EmitSetMonData(BUFFER_A, REQUEST_STATUS_BATTLE, 0, 4, &gBattleMons[battlerId].status1);
+                MarkBattlerForControllerExec(gActiveBattler);
+                effect = ITEM_STATUS_CHANGE;
             }
             break;
         }
@@ -3401,6 +3429,10 @@ u8 ItemBattleEffects(u8 caseID, u8 battlerId, bool8 moveTurn)
                     effect = ITEM_HP_CHANGE;
                     RecordItemEffectBattle(battlerId, battlerHoldEffect);
                 }
+                break;
+            case HOLD_EFFECT_FLAME_ORB:
+                if (moveTurn && TryFlameOrbBurn(battlerId))
+                    effect = ITEM_STATUS_CHANGE;
                 break;
             case HOLD_EFFECT_CONFUSE_SPICY:
                 TRY_EAT_CONFUSE_BERRY(FLAVOR_SPICY);

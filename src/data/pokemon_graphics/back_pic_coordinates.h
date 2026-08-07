@@ -256,7 +256,7 @@ const struct MonCoords gMonBackPicCoords[] =
     [SPECIES_LUGIA]       = { .size = MON_COORDS_SIZE(64, 64), .y_offset =  1 },
     [SPECIES_HO_OH]       = { .size = MON_COORDS_SIZE(64, 64), .y_offset =  1 },
     [SPECIES_CELEBI]      = { .size = MON_COORDS_SIZE(48, 48), .y_offset =  8 },
-    [SPECIES_OLD_UNOWN_B] = { .size = MON_COORDS_SIZE(64, 64), .y_offset =  2 },
+    [SPECIES_MISMAGIUS]   = { .size = MON_COORDS_SIZE(64, 64), .y_offset =  0 },
     [SPECIES_OLD_UNOWN_C] = { .size = MON_COORDS_SIZE(64, 64), .y_offset =  2 },
     [SPECIES_OLD_UNOWN_D] = { .size = MON_COORDS_SIZE(64, 64), .y_offset =  2 },
     [SPECIES_OLD_UNOWN_E] = { .size = MON_COORDS_SIZE(64, 64), .y_offset =  2 },
@@ -448,4 +448,3 @@ const struct MonCoords gMonBackPicCoords[] =
     [SPECIES_UNOWN_EMARK] = { .size = MON_COORDS_SIZE(24, 56), .y_offset =  6 },
     [SPECIES_UNOWN_QMARK] = { .size = MON_COORDS_SIZE(32, 56), .y_offset =  6 },
 };
-

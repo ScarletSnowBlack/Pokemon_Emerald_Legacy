@@ -6591,7 +6591,32 @@ const union {
         .FLASH = TRUE,
     } },
 
-    [SPECIES_OLD_UNOWN_B] = { .learnset = {
+    [SPECIES_MISMAGIUS] = { .learnset = {
+        .CALM_MIND = TRUE,
+        .TOXIC = TRUE,
+        .HIDDEN_POWER = TRUE,
+        .SUNNY_DAY = TRUE,
+        .TAUNT = TRUE,
+        .PROTECT = TRUE,
+        .RAIN_DANCE = TRUE,
+        .FRUSTRATION = TRUE,
+        .THUNDERBOLT = TRUE,
+        .THUNDER = TRUE,
+        .RETURN = TRUE,
+        .PSYCHIC = TRUE,
+        .SHADOW_BALL = TRUE,
+        .DOUBLE_TEAM = TRUE,
+        .SHOCK_WAVE = TRUE,
+        .AERIAL_ACE = TRUE,
+        .TORMENT = TRUE,
+        .FACADE = TRUE,
+        .SECRET_POWER = TRUE,
+        .REST = TRUE,
+        .ATTRACT = TRUE,
+        .THIEF = TRUE,
+        .SKILL_SWAP = TRUE,
+        .SNATCH = TRUE,
+        .FLASH = TRUE,
     } },
 
     [SPECIES_OLD_UNOWN_C] = { .learnset = {
